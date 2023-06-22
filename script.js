@@ -11,39 +11,48 @@ document.getElementById('btn').addEventListener('click',function(event){
         ProductName:productName
     }
 
-    //doing a post request
-    axios.post("https://crudcrud.com/api/c71a3cecf9834cbb9ba82f41dc977d66/products",obj)
-    .then((responce)=>{
-        console.log(responce);
-        showOnScreen(responce.data);
-    }).catch((err)=>{
-        console.log(err);
-    })
+    doPost(obj);
 
     //incrementing the total price
     totalPrice += parseFloat(obj.Price); 
     incrementTotal();
 
-    //storing data in local storage
-    let myobj=JSON.stringify(obj);
-    localStorage.setItem(productName,myobj);
-
-    //showing on the screen
-    //showOnScreen(obj);
-
-    
 })
 
-//get request
-window.addEventListener("DOMContentLoaded",()=>{
-    axios.get("https://crudcrud.com/api/c71a3cecf9834cbb9ba82f41dc977d66/products")
-    .then((promise)=>{
-        for(var i=0;i<promise.data.length;i++){
-           showOnScreen(promise.data[i]);
-        } 
-    }).catch((err)=>{
+//doing a post request
+async function doPost(obj){
+    try{
+    const response=await axios.post("https://crudcrud.com/api/22881041879445e7ab2084fb0426f1fd/products",obj)
+    console.log(response);
+    showOnScreen(response.data);
+    }catch(err){
         console.log(err);
-    })
+    }
+}
+
+ //delete request to delte the item from cloud
+ async function deletePost(id){
+    try{
+    const promise=await axios.delete(`https://crudcrud.com/api/22881041879445e7ab2084fb0426f1fd/products/${id}`)
+    console.log(promise);
+    }catch(err){
+        console.log(err);
+    }
+}
+
+//get request
+window.addEventListener("DOMContentLoaded", async()=>{
+    try{
+   const promise=await axios.get("https://crudcrud.com/api/22881041879445e7ab2084fb0426f1fd/products")
+   for(let i=0;i<promise.data.length;i++){
+    showOnScreen(promise.data[i]);
+    
+    totalPrice += parseFloat(promise.data[i].Price); 
+    incrementTotal();
+    } 
+   }catch(err){
+    console.log(err);
+   }
 })
 
 function showOnScreen(obj){
@@ -54,7 +63,7 @@ function showOnScreen(obj){
 
     //adding a delete button to the item
     let deleteBtn=document.createElement("button");
-    deleteBtn.id="delete";
+    deleteBtn.id=obj._id;
     deleteBtn.textContent="Delete Item";
     li.appendChild(deleteBtn);
 
@@ -67,22 +76,16 @@ function showOnScreen(obj){
 }
 
 function deletingItems(obj){
-document.getElementById('delete').addEventListener('click',(e)=>{
+document.getElementById(obj._id).addEventListener('click',(e)=>{
     e.preventDefault();
-    //delete request to delte the item from cloud
-    axios.delete(`https://crudcrud.com/api/c71a3cecf9834cbb9ba82f41dc977d66/products/${obj._id}`)
-    .then((promise)=>{
-        console.log(promise);
-    }).catch((error)=>{
-        console.log(error);
-    })
 
+    deletePost(obj._id)
+   
     //decrementing the total product value
-    totalPrice -= parseFloat(obj.Price); // Decrement totalPrice
+    if(totalPrice>0){
+    totalPrice -= parseFloat(obj.Price);
+    } 
     incrementTotal(); 
-
-    //removing item from local storage
-    localStorage.removeItem(obj.ProductName);
 
     //removing the item on screen
     let li=document.getElementById("item");
